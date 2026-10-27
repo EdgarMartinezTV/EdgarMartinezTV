@@ -1,0 +1,5 @@
+# only needed to regenerate the ASCII portrait locally (not used by the daily workflow)
+Pillow==12.1.1
+numpy==1.26.4
+opencv-python-headless
+rembg[cpu]
