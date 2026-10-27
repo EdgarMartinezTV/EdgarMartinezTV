@@ -27,18 +27,21 @@ INP = sys.argv[1] if len(sys.argv) > 1 else os.path.join(HERE, "..", "source-pho
 OUT = sys.argv[2] if len(sys.argv) > 2 else os.path.join(HERE, "..", "source-prepped.png")
 
 CEIL = 0.88           # darkest subject pixel -> this (past WHITE_FLOOR: black suit fades out)
-CLAHE_CLIP = 3.0
-HIGHLIGHT_GAMMA = 2.2 # >1 spreads the bright face so features survive
+CLAHE_CLIP = 5.0
+CLAHE_TILE = 6       # small tiles even out hard side lighting across the face
+HIGHLIGHT_GAMMA = 1.15 # >1 spreads the bright face so features survive
+ALPHA_MIN = 128      # drop soft rembg edges (stray glyphs around hair/shoulders)
 CROP = 0.72           # crop side as a fraction of the subject width (head + shoulders)
 
 # 1. cut out the subject
 cut = remove(Image.open(INP).convert("RGBA"))
 rgb = np.array(cut.convert("RGB"))
 alpha = np.array(cut.split()[-1])                 # 0 = background
+alpha[alpha <= ALPHA_MIN] = 0
 gray = cv2.cvtColor(rgb, cv2.COLOR_RGB2GRAY)
 
 # 2. local contrast
-gray = cv2.createCLAHE(clipLimit=CLAHE_CLIP, tileGridSize=(8, 8)).apply(gray)
+gray = cv2.createCLAHE(clipLimit=CLAHE_CLIP, tileGridSize=(CLAHE_TILE, CLAHE_TILE)).apply(gray)
 gray = cv2.bilateralFilter(gray, 7, 30, 7)
 
 # tone stretch over the subject only
